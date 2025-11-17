@@ -8,10 +8,6 @@ const userSchema = new mongoose.Schema(
       sparse: true, // allow null but still unique when provided
     },
 
-    otp: {
-      type: String,
-    },
-
     email: {
       type: String,
       unique: true,

@@ -27,26 +27,30 @@ export default function Navbar() {
   const isMenOrWomenPage = pathname === "/men" || pathname === "/women";
 
   // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce(async (query) => {
-      if (query.trim() === "") {
-        setSearchResults([]);
-        setShowDropdown(false);
-        return;
-      }
+  const debouncedSearch = useCallback(() => {
+    const query = searchQuery;
+    if (query.trim() === "") {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
 
-      try {
-        const response = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
-        const data = await response.json();
+    fetch(`/api/products?search=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
         if (data.success) {
           setSearchResults(data.products.slice(0, 5)); // Limit to 5 results
           setShowDropdown(true);
         }
-      } catch (error) {
+      })
+      .catch(error => {
         console.error("Error fetching search results:", error);
-      }
-    }, 300),
-    []
+      });
+  }, [searchQuery]);
+
+  const debouncedSearchHandler = useCallback(
+    debounce(debouncedSearch, 300),
+    [debouncedSearch]
   );
 
   // Handle search input change

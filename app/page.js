@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 import Link from "next/link";
+import Image from "next/image";
 
 export const metadata = {
   title: "Hayati - Premium Fashion for Trendy Souls | Online Clothing Store",
@@ -50,7 +51,14 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center gap-6">
             {/* Logo */}
             <div>
-                <img src="/hayati-high-resolution-logo.png" alt="Logo" className="rounded-lg mx-4 shadow-black shadow-lg w-[250px] h-24 object-cover  cursor-pointer" />
+                <Image
+                  src="/hayati-high-resolution-logo.png"
+                  alt="Logo"
+                  width={250}
+                  height={96}
+                  className="rounded-lg mx-4 shadow-black shadow-lg w-[250px] h-24 object-cover cursor-pointer"
+                  priority
+                />
             </div>
 
             {/* Boxes Section */}
@@ -58,12 +66,14 @@ export default function Home() {
               {/* Men Box */}
               <div
                 className="relative w-[40%] sm:w-[220px] h-[280px] flex items-center justify-center lg:w-60 lg:h-80 rounded-2xl overflow-hidden group z-10"
-                style={{
-                  backgroundImage: "url('https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
               >
+                <Image
+                  src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg"
+                  alt="Men's Fashion"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 40vw, (max-width: 1024px) 220px, 240px"
+                />
                 {/* Make sure nothing blocks the button */}
                 <div className="z-20 mt-50">
                   <Link href="/men">
@@ -77,12 +87,14 @@ export default function Home() {
               {/* Women Box */}
               <div
                 className="relative w-[40%] sm:w-[220px] h-[280px] flex items-center justify-center lg:w-60 lg:h-80 rounded-2xl overflow-hidden group z-10"
-                style={{
-                  backgroundImage: "url('https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
               >
+                <Image
+                  src="https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg"
+                  alt="Women's Fashion"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 40vw, (max-width: 1024px) 220px, 240px"
+                />
                <div className="z-20 mt-50">
                   <Link href="/women">
                     <button className="bg-white border  border-yellow-600 font-extrabold rounded-md text-2xl py-2 px-13 cursor-pointer hover:bg-yellow-100 transition-all">

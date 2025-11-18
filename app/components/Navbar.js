@@ -1,9 +1,18 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import LoginModal from "./LoginModal";
 import Link from "next/link";
+
+// Debounce utility function
+function debounce(func, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -17,27 +26,34 @@ export default function Navbar() {
   // Check if on men or women page
   const isMenOrWomenPage = pathname === "/men" || pathname === "/women";
 
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce(async (query) => {
+      if (query.trim() === "") {
+        setSearchResults([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        if (data.success) {
+          setSearchResults(data.products.slice(0, 5)); // Limit to 5 results
+          setShowDropdown(true);
+        }
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+      }
+    }, 300),
+    []
+  );
+
   // Handle search input change
-  const handleSearchChange = async (e) => {
+  const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    if (query.trim() === "") {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
-      const data = await response.json();
-      if (data.success) {
-        setSearchResults(data.products.slice(0, 5)); // Limit to 5 results
-        setShowDropdown(true);
-      }
-    } catch (error) {
-      console.error("Error fetching search results:", error);
-    }
+    debouncedSearch(query);
   };
 
   // Hide dropdown when clicking outside

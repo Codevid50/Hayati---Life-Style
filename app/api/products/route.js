@@ -7,16 +7,32 @@ export async function GET(request) {
 
     const category = request.nextUrl.searchParams.get("category");
     const search = request.nextUrl.searchParams.get("search");
-    let products = [];
+    const page = parseInt(request.nextUrl.searchParams.get("page")) || 1;
+    const limit = parseInt(request.nextUrl.searchParams.get("limit")) || 20;
+    const skip = (page - 1) * limit;
 
+    let query = {};
+    let products = [];
+    let totalProducts = 0;
+
+    // Build query based on category
     if (category === "men") {
-      products = await MenProduct.find({});
+      query = {};
+      totalProducts = await MenProduct.countDocuments(query);
+      products = await MenProduct.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
     } else if (category === "women") {
-      products = await WomenProduct.find({});
+      query = {};
+      totalProducts = await WomenProduct.countDocuments(query);
+      products = await WomenProduct.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
     } else {
-      const men = await MenProduct.find({});
-      const women = await WomenProduct.find({});
-      products = [...men, ...women];
+      // For search or general listing, combine both collections
+      const menProducts = await MenProduct.find(query).sort({ createdAt: -1 });
+      const womenProducts = await WomenProduct.find(query).sort({ createdAt: -1 });
+      products = [...menProducts, ...womenProducts];
+      totalProducts = products.length;
+
+      // Apply pagination after combining
+      products = products.slice(skip, skip + limit);
     }
 
     // Filter by search term if provided
@@ -25,9 +41,22 @@ export async function GET(request) {
       products = products.filter(product =>
         searchRegex.test(product.title) || searchRegex.test(product.desc)
       );
+      totalProducts = products.length; // Update total for search results
     }
 
-    return Response.json({ success: true, products }, { status: 200 });
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    return Response.json({
+      success: true,
+      products,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalProducts,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error("❌ Error fetching products:", error);
     return Response.json(

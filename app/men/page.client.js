@@ -10,14 +10,25 @@ const Men = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // ✅ Fetch products
+  // ✅ Fetch products with pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("/api/products?category=men", { cache: "no-store" });
+        const res = await fetch(`/api/products?category=men&page=${currentPage}&limit=12`);
         const data = await res.json();
-        setProducts(Array.isArray(data.products) ? data.products : []);
-
+        if (data.success) {
+          if (currentPage === 1) {
+            setProducts(data.products);
+          } else {
+            setProducts(prev => [...prev, ...data.products]);
+          }
+          setPagination(data.pagination);
+          setHasMore(data.pagination.hasNextPage);
+        }
       } catch (err) {
         console.error("Error fetching products:", err);
       } finally {
@@ -25,7 +36,7 @@ const Men = () => {
       }
     }
     fetchProducts();
-  }, []);
+  }, [currentPage]);
 
   // ✅ Handle category filter
   const handleCategoryChange = (cat) => {
@@ -153,6 +164,7 @@ const Men = () => {
                     src={p.image}
                     alt={p.title}
                     className="w-full h-[340px] object-cover group-hover:scale-105 transition-transform"
+                    loading="lazy"
                   />
                   <div className="p-1 sm:p-3">
                     <div className="flex items-center justify-between text-xs text-gray-600">
@@ -181,6 +193,18 @@ const Men = () => {
               </p>
             )}
           </div>
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                className="bg-yellow-600 text-white px-6 py-2 rounded-md hover:bg-yellow-700 transition-colors"
+              >
+                Load More Products
+              </button>
+            </div>
+          )}
 
         </main>
       </div>
